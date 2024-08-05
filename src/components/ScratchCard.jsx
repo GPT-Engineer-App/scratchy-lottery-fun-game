@@ -5,6 +5,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 import useSound from 'use-sound';
 import scratchSound from '../assets/scratch-sound.mp3';
 import winSound from '../assets/win-sound.mp3';
+import { toPng } from 'html-to-image';
 
 const ScratchCard = () => {
   const [isScratched, setIsScratched] = useState(false);
@@ -36,21 +37,25 @@ const ScratchCard = () => {
 
     playScratch();
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const scratchedPixels = imageData.data.filter((_, i) => i % 4 === 3 && imageData.data[i] === 0).length;
-    const totalPixels = canvas.width * canvas.height;
+    toPng(canvas)
+      .then(() => {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const scratchedPixels = imageData.data.filter((_, i) => i % 4 === 3 && imageData.data[i] === 0).length;
+        const totalPixels = canvas.width * canvas.height;
 
-    if (scratchedPixels / totalPixels > 0.5) {
-      setIsScratched(true);
-      const winChance = Math.random();
-      if (winChance < 0.3) { // 30% chance of winning
-        setIsWinner(true);
-        const winAmount = Math.floor(Math.random() * 100) + 1; // Random prize between $1 and $100
-        setPrize(winAmount);
-        playWin();
-      }
-      setShowAlert(true);
-    }
+        if (scratchedPixels / totalPixels > 0.5) {
+          setIsScratched(true);
+          const winChance = Math.random();
+          if (winChance < 0.3) { // 30% chance of winning
+            setIsWinner(true);
+            const winAmount = Math.floor(Math.random() * 100) + 1; // Random prize between $1 and $100
+            setPrize(winAmount);
+            playWin();
+          }
+          setShowAlert(true);
+        }
+      })
+      .catch(err => console.error('Error in handleScratch:', err));
   };
 
   const resetCard = () => {
